@@ -166,13 +166,13 @@ function worldCard(w){const W_=WORLDS[w];let h='<div class="pic" style="backgrou
  const nx=$('card').querySelector('.lv:not(:disabled):not(.done)');}
 /* ---- cards ---- */
 let cardBack=null;
-function card(html,btns,opt){const c=$('card');c.innerHTML=html+(btns&&btns.length?'<div class="btns'+(btns.length===2&&!(opt&&opt.stack)?' two':'')+(btns.length>=4?' many':'')+'"></div>':'');
- const bx=c.querySelector('.btns');(btns||[]).forEach((b,i)=>{const e=document.createElement('button');e.type='button';e.className='btn '+(b.cls||'')+(i===0?' primary':'');e.innerHTML=b.t;if(b.id)e.id=b.id;e.onclick=()=>{AU.S.sel();b.fn()};bx.appendChild(e)});
+function card(html,btns,opt){const c=$('card');c.innerHTML='<div class="cbody">'+html+'</div>'+(btns&&btns.length?'<div class="btns'+(btns.length===2&&!(opt&&opt.stack)?' two':'')+(btns.length>=4?' many':'')+'"></div>':'');
+ const bx=c.querySelector('.btns');(btns||[]).forEach((b,i)=>{const e=document.createElement('button');e.type='button';e.className='btn '+(b.cls||'')+(i===0?' primary':'');e.innerHTML=b.t;if(b.id)e.id=b.id;e.onclick=()=>{AU.S.sel();b.fn()};bx.appendChild(e)});const cb=c.querySelector('.cbody');if(cb)cb.scrollTop=0;
  cardBack=opt&&opt.back||(btns&&btns.length?btns[btns.length-1].fn:closeCard);$('ov').classList.add('on');c.scrollTop=0}
 function closeCard(){$('ov').classList.remove('on')}
 function cardOpen(){return $('ov').classList.contains('on')}
 /* ---- game start ---- */
-function newGame(mode,w,l){G={mode,w:w||0,l:l||0,score:0,moves:0,got:[0,0],dmg:0,extra:0,over:false,def:null,time:120000,T:120000,lastTick:0};
+function newGame(mode,w,l){closeCard();G={mode,w:w||0,l:l||0,score:0,moves:0,got:[0,0],dmg:0,extra:0,over:false,def:null,time:120000,T:120000,lastTick:0};
  if(mode==='journey'){G.def=levelDef(w,l);G.moves=G.def.moves}else G.def={type:mode};
  setNC(6);setSPC(mode==='rush'?0:.02);B=newBoard();
  sel=hint=armed=null;busy=true;lastAct=performance.now();cursor.r=cursor.c=3;show('play');
@@ -252,7 +252,7 @@ async function levelWon(){G.over=true;busy=true;hint=sel=armed=null;const d=G.de
   [{t:'▶ Next',cls:'gold',fn:()=>{if(nx[1]===0){state='wdone';setTimeout(()=>goMap(nx[0]),60)}else startLevel(nx[0],nx[1])}},{t:'🗺️ Map',cls:'dim',fn:()=>goMap()}]);
  if(d.type==='chest')state='wdone'}
 function finale(){state='finale';AU.play('finale');setBg('palace');
- card('<div class="pic" style="width:150px;height:200px;border-radius:18px;border:4px solid #f6c94f;background-image:url(art/helene.webp);background-size:cover"></div><h2>The treasure is home!</h2><p>All six chests are open and Helene\u2019s Grand Treasure is back where it belongs. Thank you for the wonderful journey!</p><p>Journey score <b>'+fmt(journeyTotal())+'</b> · ★ '+totalStars()+' / 90</p>',
+ card('<div class="pic hpic" style="background-image:url(art/helene.webp)"></div><h2>The treasure is home!</h2><p>All six chests are open and Helene\u2019s Grand Treasure is back where it belongs. Thank you for the wonderful journey!</p><p>Journey score <b>'+fmt(journeyTotal())+'</b> · ★ '+totalStars()+' / 90</p>',
   [{t:'🌸 Relax in Zen',cls:'teal',fn:()=>newGame('zen')},{t:'🏠 Home',cls:'dim',fn:goTitle}]);
  AU.S.win()}
 /* ---- Rush end ---- */

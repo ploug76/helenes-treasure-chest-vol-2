@@ -98,7 +98,7 @@ body.land .wbtn{min-width:170px;max-width:31%}
 /* cards */
 .ov{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:rgba(12,2,20,.78);padding:10px}
 .ov.on{display:flex}
-.card{position:relative;width:min(94vw,500px);max-height:calc(100% - 8px);overflow:auto;display:flex;flex-direction:column;background:linear-gradient(#4a1863,#2a0c3a);border:4px solid #f4c34d;border-radius:24px;padding:16px 16px 14px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.card{position:relative;width:min(94vw,500px);max-height:calc(100% - 8px);overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(#4a1863,#2a0c3a);border:4px solid #f4c34d;border-radius:24px;padding:16px 16px 14px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.6)}
 .card h2{margin:2px 0 8px;font-size:30px;color:#ffe08a;font-family:Georgia,serif;line-height:1.1}
 .card p{margin:6px 0;font-size:21px;line-height:1.35}
 .card .pic{width:120px;height:120px;margin:0 auto 4px;background:center/contain no-repeat}
@@ -107,12 +107,13 @@ body.land .wbtn{min-width:170px;max-width:31%}
 .card .btns.two{grid-template-columns:1fr 1fr}
 .stars{font-size:46px;letter-spacing:6px;color:#ffd75e;text-shadow:0 0 12px rgba(255,210,80,.7)}
 .stars .off{color:#5b4370;text-shadow:none}
-.card ul{text-align:left;margin:6px 0;padding-left:24px;font-size:20px;line-height:1.4;overflow:auto;flex:1 1 auto;min-height:0}
-.card>*{flex:0 0 auto}.card>ul{flex:1 1 auto}
+.card ul{text-align:left;margin:6px 0;padding-left:24px;font-size:20px;line-height:1.4}
+.cbody{overflow:auto;min-height:0;flex:1 1 auto}.card .btns{flex:0 0 auto}
+.card .hpic{width:150px;height:200px;border-radius:18px;border:4px solid #f6c94f;background-size:cover}
 @media (orientation:landscape) and (max-height:620px){
  .card{width:min(94vw,640px);padding:10px 14px}.card h2{font-size:26px;margin-bottom:4px}.card p{margin:4px 0}
- .card .btns.many{grid-template-columns:1fr 1fr}.card .btns{margin-top:8px}.card .face{width:72px;height:72px}.card .pic{width:96px;height:96px}
- .stars{font-size:38px}
+ .card .btns.many{grid-template-columns:1fr 1fr}.card .btns{margin-top:8px}.card .face{width:64px;height:64px}.card .pic{width:70px;height:70px}.card .hpic{width:84px;height:112px}
+ .stars{font-size:32px;line-height:1.1}.card p{font-size:19px;line-height:1.3}.card .btns .btn{min-height:54px;font-size:21px}
  #gp-hint{top:auto!important;bottom:10px!important;left:12px!important;transform:none!important;max-width:30vw!important;white-space:normal}}
 .card li{margin:4px 0}
 .set{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0;font-size:22px;font-weight:700;text-align:left}
@@ -120,7 +121,7 @@ body.land .wbtn{min-width:170px;max-width:31%}
 .set button.on{background:linear-gradient(#3ddc84,#16924d)}
 .lvls{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px}
 .lv{height:76px;border-radius:16px;border:3px solid #fff3c4;background:linear-gradient(#a24bd0,#6a1f93);font-size:26px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
-.lv small{font-size:15px;color:#ffd75e;letter-spacing:1px;margin-top:4px}
+.lv small{font-size:17px;color:#ffd75e;letter-spacing:1px;margin-top:4px}
 .lv.chest{background:linear-gradient(#ffd75e,#e09a14);color:#3a1600}
 .lv:disabled{background:#3a2a48;color:#9a8aa8;border-color:#6a5a78}
 /* share/install dock (title only) */
@@ -173,11 +174,11 @@ body #palbList li{height:38px;font-size:19px}body #palbTabs button{min-height:48
 <div class="ov" id="ov" role="dialog" aria-modal="true"><div class="card" id="card"></div></div>
 <div id="dock" role="toolbar" aria-label="Share and install"><button class="dk" id="shareBtn" type="button">🔗 Share</button><button class="dk" id="instBtn" type="button">📲 Install</button></div>
 <div id="toast" role="status"></div>
-<script src="js/logic.js?v=2"></script>
-<script src="js/audio.js?v=2"></script>
-<script src="js/game.js?v=2"></script>
-<script src="js/gamepad.js?v=2"></script>
-<script src="js/pad.js?v=2"></script>
+<script src="js/logic.js?v=3"></script>
+<script src="js/audio.js?v=3"></script>
+<script src="js/game.js?v=3"></script>
+<script src="js/gamepad.js?v=3"></script>
+<script src="js/pad.js?v=3"></script>
 <!--lb--><script>// LIVE config (Firestore). Public web keys only (safe to ship per Firebase docs). Used only for J Woo's Fishing Challenge + its five8nine copy.
 window.PALB_CONFIG = {
   backend: 'firestore',
