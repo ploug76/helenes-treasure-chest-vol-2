@@ -1,4 +1,4 @@
-const P='helenes-treasure-chest-vol-2-',V=P+'v3',FILES=['./','index.html','js/logic.js?v=3','js/audio.js?v=3','js/game.js?v=3','js/gamepad.js?v=3','js/pad.js?v=3','art/gems.webp','art/helene.webp','art/face.webp','manifest.json','icon-192.png'];
+const P='helenes-treasure-chest-vol-2-',V=P+'v4',FILES=['./','index.html','js/logic.js?v=4','js/audio.js?v=4','js/game.js?v=4','js/gamepad.js?v=4','js/pad.js?v=4','art/gems.webp','art/helene.webp','art/face.webp','manifest.json','icon-192.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(FILES)));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(n=>n!=V&&n.startsWith(P)).map(n=>caches.delete(n)))).then(()=>self.clients.claim()))});
 /* network first (so updates show up), cache as fallback; world art is cached the first time it is used */

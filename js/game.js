@@ -31,6 +31,7 @@ const LOWEND=(navigator.hardwareConcurrency||8)<=4||(navigator.deviceMemory||8)<
 let PCAP=60,PR=1.5;
 function applySaver(){const s=!!SV.saver;PCAP=s?24:(LOWEND?40:70);PR=Math.min(window.devicePixelRatio||1,s?1.5:2);document.body.classList.toggle('drift',!s);layout(true)}
 /* ---- state ---- */
+let GEN=0;/* bumps whenever a game starts or is left, so moves still animating from an old game stop quietly */
 let state='title',G=null,B=null,busy=false,sel=null,hint=null,cursor={r:3,c:3,on:false},armed=null,lastAct=0,hintSaid=0;
 const FPS=30,FRAME=1000/FPS;
 /* ---- art (lazy per world) ---- */
@@ -145,12 +146,12 @@ let banT=0;function banner(t,ms){const b=$('banner');b.textContent=t;b.classList
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),2200)}
 /* ---- screens ---- */
 function show(id){['title','map','play'].forEach(s=>$(s).classList.toggle('on',s===id));$('dock').classList.toggle('on',id==='title');state=id==='play'?'play':id}
-function goTitle(){closeCard();show('title');G=null;setBg('');AU.play('title');$('bJourneyT').textContent=totalStars()?'Continue the Journey':'Start the Journey'}
+function goTitle(){GEN++;closeCard();show('title');G=null;setBg('');AU.play('title');$('bJourneyT').textContent=totalStars()?'Continue the Journey':'Start the Journey'}
 /* ---- map ---- */
 function placeMap(){const inner=$('mapIn'),land=innerWidth>innerHeight*1.1;document.body.classList.toggle('land',land);
  Object.assign(inner.style,land?{width:'100%',aspectRatio:'auto',backgroundImage:'none'}:{width:'',aspectRatio:'',backgroundImage:inner.dataset.bg||''});
  inner.querySelectorAll('.wbtn').forEach((b,i)=>{if(land){b.style.left=(18+32*(i%3))+'%';b.style.top=(i<3?40:76)+'%'}else{b.style.left='50%';b.style.top=(WORLDS[i].mapY*100)+'%'}})}
-function goMap(focusW){closeCard();show('map');setBg('');AU.play('title');const inner=$('mapIn');
+function goMap(focusW){GEN++;closeCard();show('map');setBg('');AU.play('title');const inner=$('mapIn');
  img('art/map.webp').then(i=>{if(i){inner.dataset.bg='url(art/map.webp)';$('map').style.backgroundImage='url(art/map.webp)';placeMap()}});
  inner.innerHTML='';const nx=nextLevel();
  WORLDS.forEach((w,i)=>{const open=unlocked(i,0),st=[0,1,2,3,4].reduce((a,l)=>a+(SV.stars[lkey(i,l)]||0),0);
@@ -172,7 +173,7 @@ function card(html,btns,opt){const c=$('card');c.innerHTML='<div class="cbody">'
 function closeCard(){$('ov').classList.remove('on')}
 function cardOpen(){return $('ov').classList.contains('on')}
 /* ---- game start ---- */
-function newGame(mode,w,l){closeCard();G={mode,w:w||0,l:l||0,score:0,moves:0,got:[0,0],dmg:0,extra:0,over:false,def:null,time:120000,T:120000,lastTick:0};
+function newGame(mode,w,l){GEN++;closeCard();G={mode,w:w||0,l:l||0,score:0,moves:0,got:[0,0],dmg:0,extra:0,over:false,def:null,time:120000,T:120000,lastTick:0};
  if(mode==='journey'){G.def=levelDef(w,l);G.moves=G.def.moves}else G.def={type:mode};
  setNC(6);setSPC(mode==='rush'?0:.02);B=newBoard();
  sel=hint=armed=null;busy=true;lastAct=performance.now();cursor.r=cursor.c=3;show('play');
@@ -201,44 +202,44 @@ function tapCell(p){if(state!=='play'||busy)return;lastAct=performance.now();hin
  if(sel&&adj(sel,p)){const a=sel;sel=null;trySwap(a,p);return}
  sel={r:p.r,c:p.c};AU.S.sel()}
 /* ---- moves ---- */
-async function trySwap(a,b){if(busy||state!=='play'||!G||G.over)return;busy=true;hint=null;sel=null;lastAct=performance.now();
+async function trySwap(a,b){if(busy||state!=='play'||!G||G.over)return;const my=GEN;busy=true;hint=null;sel=null;lastAct=performance.now();
  const A=B[a.r][a.c],Bb=B[b.r][b.c];AU.S.swap();
- await Promise.all([tween(A,{x:b.c,y:b.r},150),tween(Bb,{x:a.c,y:a.r},150)]);
- if(!moveValid(B,a,b)){AU.S.bump();await Promise.all([tween(A,{x:a.c,y:a.r},150),tween(Bb,{x:b.c,y:b.r},150)]);busy=false;lastAct=performance.now();return}
+ await Promise.all([tween(A,{x:b.c,y:b.r},150),tween(Bb,{x:a.c,y:a.r},150)]);if(my!==GEN)return;
+ if(!moveValid(B,a,b)){AU.S.bump();await Promise.all([tween(A,{x:a.c,y:a.r},150),tween(Bb,{x:b.c,y:b.r},150)]);if(my!==GEN)return;busy=false;lastAct=performance.now();return}
  swapCells(B,a,b);const pre=swapPre(B,a,b);if(G.mode==='journey')G.moves--;
- await resolve(pre,[K(a.r,a.c),K(b.r,b.c)]);await afterMove();busy=false;lastAct=performance.now()}
-async function resolve(pre,prefer){let chain=0,st=computeStep(B,prefer,pre);
+ if(!await resolve(pre,[K(a.r,a.c),K(b.r,b.c)]))return;await afterMove();if(my!==GEN)return;busy=false;lastAct=performance.now()}
+async function resolve(pre,prefer){const my=GEN;let chain=0,st=computeStep(B,prefer,pre);
  while(st){chain++;let n=0,cx0=0,cy0=0;
   for(const k of st.clear){const g=B[KR(k)][KC(k)];if(!g)continue;n++;cx0+=KC(k);cy0+=KR(k);collect(g,k)}
   for(const f of st.fx){fxs.push(Object.assign({life:0,max:420},f));if(f.t==='x')AU.S.star();else if(f.t==='b')AU.S.burst();else AU.S.line();if(G.def.type==='chest')G.dmg+=3}
   if(st.cre.length)AU.S.special();AU.S.match(chain,n);
   const pts=n*10*chain+st.cre.length*30+st.fx.length*40;G.score+=pts;
-  const mx=(cx0/n+.5)*CELL,my=(cy0/n+.5)*CELL;floatText(mx,my,'+'+pts,chain>1?'#9effc8':'#fff3a0');
+  const mx=(cx0/n+.5)*CELL,ty=(cy0/n+.5)*CELL;floatText(mx,ty,'+'+pts,chain>1?'#9effc8':'#fff3a0');
   if(chain===2)say(pick(['Lovely!','Ooh, sparkly!','Wonderful!','How pretty!']),1600);
   if(chain>=3){floatText(BS/2,BS*.42,'COMBO x'+chain+'!','#ffd75e',true);if(chain===3)say(pick(['Look at that go!','Goodness gracious!','Treasure galore!']),1800)}
   if(G.def.type==='chest'){$('chestImg').classList.remove('wig');void $('chestImg').offsetWidth;$('chestImg').classList.add('wig');if(Math.random()<.35)AU.S.giggle()}
   const {gone,born}=applyClear(B,st);
   for(const {g} of gone){dying.push(g);sparkle((g.x+.5)*CELL,(g.y+.5)*CELL,SV.saver?2:4,0);tween(g,{sc:.1,al:0},190,'inq')}
   for(const g of born){g.sc=.3;tween(g,{sc:1},260,'back')}
-  hud();await wait(200);dying=[];
-  const mv=applyGravity(B);await Promise.all(mv.map(m=>tween(m.g,{y:m.to},140+Math.abs(m.to-m.g.y)*55,'inq')));
+  hud();await wait(200);if(my!==GEN)return false;dying=[];
+  const mv=applyGravity(B);await Promise.all(mv.map(m=>tween(m.g,{y:m.to},140+Math.abs(m.to-m.g.y)*55,'inq')));if(my!==GEN)return false;
   st=computeStep(B,null);}
- if(!allMoves(B).length){banner('✨ Fresh shuffle!');await reshuffle()}
- dirty=true;kick()}
+ if(!allMoves(B).length){banner('✨ Fresh shuffle!');await reshuffle();if(my!==GEN)return false}
+ dirty=true;kick();return true}
 async function reshuffle(){shuffleBoard(B);await Promise.all(B.flat().map((g,i)=>tween(g,{x:i%N,y:Math.floor(i/N)},380,'out')))}
 function collect(g,k){if(!G)return;const d=G.def;if(d.type==='collect'&&g.c>=0)d.need.forEach(([c],i)=>{if(g.c===c)G.got[i]++});
  if(d.type==='chest')G.dmg+=g.c===d.fav?2:1}
 function goalMet(){const d=G.def;if(d.type==='score')return G.score>=d.target;if(d.type==='collect')return d.need.every(([c,n],i)=>G.got[i]>=n);if(d.type==='chest')return G.dmg>=d.hp;return false}
-async function afterMove(){hud();if(G.mode==='zen'&&G.score>SV.zenBest){SV.zenBest=G.score;persist()}if(G.mode!=='journey')return;
+async function afterMove(){if(!G)return;hud();if(G.mode==='zen'&&G.score>SV.zenBest){SV.zenBest=G.score;persist()}if(G.mode!=='journey')return;
  if(goalMet()){await levelWon();return}
  if(G.moves<=0){G.moves+=5;G.extra++;hud();banner('Keep going! +5 free moves ✨',1800);say(pick(['No rush, dear. Here are 5 more moves!','Almost there! 5 more moves, on the house.']),2600)}}
-async function levelWon(){G.over=true;busy=true;hint=sel=armed=null;const d=G.def,w=G.w,l=G.l;
+async function levelWon(){const my=GEN;G.over=true;busy=true;hint=sel=armed=null;const d=G.def,w=G.w,l=G.l;
  if(d.type==='chest'){AU.S.unlock();banner('🔓 '+WORLDS[w].chest+"'s chest is open!",2000);const ci=$('chestImg');ci.classList.remove('wig');
-  for(let i=0;i<4;i++){sparkle(BS*(.2+.2*i),BS*.3,SV.saver?5:10,0)}await wait(900)}
+  for(let i=0;i<4;i++){sparkle(BS*(.2+.2*i),BS*.3,SV.saver?5:10,0)}await wait(900);if(my!==GEN)return}
  else{AU.S.win();banner(pick(['Treasure found!','Beautiful!','Well done!'])+' 🎉',1500)}
  /* Treasure Bonus: leftover moves become coins */
- const left=Math.max(0,G.moves);if(left&&!G.extra){for(let i=0;i<Math.min(left,10);i++){G.score+=50;AU.S.coin();floatText(BS*(.2+Math.random()*.6),BS*(.3+Math.random()*.4),'+50','#ffd75e');hud();await wait(110)}if(left>10){G.score+=(left-10)*50;hud()}}
- await wait(500);
+ const left=Math.max(0,G.moves);if(left&&!G.extra){for(let i=0;i<Math.min(left,10);i++){if(my!==GEN)return;G.score+=50;AU.S.coin();floatText(BS*(.2+Math.random()*.6),BS*(.3+Math.random()*.4),'+50','#ffd75e');hud();await wait(110)}if(my!==GEN)return;if(left>10){G.score+=(left-10)*50;hud()}}
+ await wait(500);if(my!==GEN)return;
  const stars=G.extra?1:(left>=5?3:2),k=lkey(w,l),prev=SV.stars[k]||0;SV.stars[k]=Math.max(prev,stars);SV.best[k]=Math.max(SV.best[k]||0,G.score);
  let gift='';if(d.type==='chest'&&!prev){const b=['s','r','s','r','s','r'][w];SV.boost[b]++;SV.boost.h++;gift='<p>🎁 '+WORLDS[w].chest+' gave you a gift: <b>🔨 Hammer +1</b> and <b>'+({s:'🔀 Shuffle',r:'🌈 Rainbow Star'}[b])+' +1</b></p>'}
  else if(!prev&&stars===3){SV.boost[['h','s','r'][(w+l)%3]]++;gift='<p>⭐ 3 stars! You earned a free booster.</p>'}
@@ -257,21 +258,21 @@ function finale(){state='finale';AU.play('finale');setBg('palace');
  AU.S.win()}
 /* ---- Rush end ---- */
 async function rushEnd(){if(G.over)return;G.over=true;hint=sel=null;const wasBest=G.score>SV.rushBest;SV.rushBest=Math.max(SV.rushBest,G.score);persist();AU.S.win();
- while(busy)await wait(100);state='over';
+ const my=GEN;while(busy&&my===GEN)await wait(100);if(my!==GEN)return;state='over';
  card('<div class="face"></div><h2>Time\u2019s up!</h2><p>You scored <b>'+fmt(G.score)+'</b></p><p>'+(wasBest?'🏆 That\u2019s your best ever!':'Your best: '+fmt(SV.rushBest))+'</p>',[{t:'⏱️ Play again',cls:'gold',fn:()=>newGame('rush')},{t:'🏠 Home',cls:'dim',fn:goTitle}])}
 /* ---- hints ---- */
 function showHint(manual){if(busy||!B)return;const m=findMove(B);if(!m)return;hint=m;dirty=true;kick();if(manual){AU.S.hint();say(pick(['Try these two glowing jewels!','How about these two?']),2000)}}
 $('tHint').onclick=()=>{AU.start();lastAct=performance.now()-100000;hint=null;showHint(true)};
 /* ---- boosters ---- */
 function arm(b){if(busy||state!=='play')return;const free=G.mode==='zen';if(!free&&!SV.boost[b])return;
- if(b==='s'){if(!free){SV.boost.s--;persist()}AU.S.boost();busy=true;banner('🔀 Shuffle!');reshuffle().then(async()=>{await resolve(null);busy=false;lastAct=performance.now();updTools()});updTools();return}
+ if(b==='s'){if(!free){SV.boost.s--;persist()}AU.S.boost();busy=true;banner('🔀 Shuffle!');const my=GEN;reshuffle().then(async()=>{if(my!==GEN||!await resolve(null))return;busy=false;lastAct=performance.now();updTools()});updTools();return}
  armed=armed===b?null:b;sel=null;$('armTip').classList.toggle('on',!!armed);$('armTxt').textContent=b==='h'?'🔨 Tap a jewel to clear it':'🌈 Tap a jewel to make it a Star';updTools();dirty=true;kick()}
 function disarm(){armed=null;$('armTip').classList.remove('on');updTools();dirty=true;kick()}
 $('tHam').onclick=()=>arm('h');$('tShuf').onclick=()=>arm('s');$('tStar').onclick=()=>arm('r');$('armCancel').onclick=disarm;
-async function useArmed(p){const b=armed,g=B[p.r][p.c];if(!g)return;disarm();if(G.mode!=='zen'){SV.boost[b]--;persist()}busy=true;AU.S.boost();
- if(b==='h'){sparkle((p.c+.5)*CELL,(p.r+.5)*CELL,8,0);await resolve({clear:new Set([K(p.r,p.c)]),forced:new Map()})}
+async function useArmed(p){const b=armed,g=B[p.r][p.c],my=GEN;if(!g)return;disarm();if(G.mode!=='zen'){SV.boost[b]--;persist()}busy=true;AU.S.boost();
+ if(b==='h'){sparkle((p.c+.5)*CELL,(p.r+.5)*CELL,8,0);if(!await resolve({clear:new Set([K(p.r,p.c)]),forced:new Map()}))return}
  else{g.s='x';g.c=-1;g.sc=.4;await tween(g,{sc:1},300,'back');floatText((p.c+.5)*CELL,(p.r+.5)*CELL,'Treasure Star!','#ffd75e');say('Swap the Star with any jewel!',2400)}
- await afterMove();busy=false;lastAct=performance.now();updTools()}
+ if(my!==GEN)return;await afterMove();if(my!==GEN)return;busy=false;lastAct=performance.now();updTools()}
 /* ---- pause / visibility ---- */
 function pause(){if(state!=='play'||cardOpen())return;state='pause';disarm();
  card('<h2>Paused</h2><p>Take all the time you like.</p>',[{t:'▶ Resume',cls:'gold',id:'resumeBtn',fn:resume},...(G.mode==='journey'?[{t:'🔄 Restart level',cls:'dim',fn:()=>startLevel(G.w,G.l)},{t:'🗺️ Map',cls:'dim',fn:()=>goMap()}]:[{t:'🔄 New game',cls:'dim',fn:()=>newGame(G.mode)}]),{t:'⚙️ Settings',cls:'dim',fn:()=>settings(pause)},{t:'🏠 Home',cls:'dim',fn:()=>{if(G.mode==='zen'){SV.zenBest=Math.max(SV.zenBest,G.score);persist()}goTitle()}}],{stack:1,back:resume})}
@@ -318,7 +319,7 @@ $('shareBtn').onclick=async()=>{const d={title:"Helene's Treasure Chest: Volume 
 $('instBtn').onclick=async()=>{if(deferredInstall){deferredInstall.prompt();deferredInstall=null;return}toast(/iphone|ipad/i.test(navigator.userAgent)?'Tap Share, then "Add to Home Screen"':'Use your browser menu: "Add to Home screen"')};
 if('serviceWorker' in navigator&&location.protocol==='https:')addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 /* ---- test hooks (used by the automated QA player) ---- */
-window.__HTC={get state(){return state},get G(){return G},get B(){return B},get busy(){return busy},get fps(){return fps},get cursor(){return cursor},get armed(){return armed},get sel(){return sel},
+window.__HTC={get state(){return state},get G(){return G},get B(){return B},get busy(){return busy},get fps(){return fps},get cursor(){return cursor},get armed(){return armed},get sel(){return sel},get dbg(){return{tws:tws.length,running,parts:parts.length,GEN}},
  findMove:()=>findMove(B),trySwap,startLevel,newGame,goMap,goTitle,levelWon:()=>levelWon(),SV,WORLDS,LPW,levelDef,persist,layoutInfo:()=>({BS,CELL,LAND}),kick};
 /* ---- boot ---- */
 AU.setMusic(SV.music);AU.setSound(SV.sound);applySaver();goTitle();
