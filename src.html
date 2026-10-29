@@ -1,0 +1,175 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Helene's Treasure Chest: Volume 2</title>
+<meta name="description" content="A free, relaxing jewel-matching journey through six storybook lands. Swap sparkling gems, open friendly treasure chests and bring Helene's treasure home!">
+<meta name="theme-color" content="#2a0d3a"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta property="og:type" content="website"><meta property="og:title" content="Helene's Treasure Chest: Volume 2"><meta property="og:description" content="A free, relaxing jewel-matching journey through six storybook lands from Peter's Arcade.">
+<meta property="og:image" content="https://ploug76.github.io/helenes-treasure-chest-vol-2/cover.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:url" content="https://ploug76.github.io/helenes-treasure-chest-vol-2/"><meta name="twitter:card" content="summary_large_image">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preload" as="image" href="art/gems.webp"><link rel="preload" as="image" href="art/helene.webp">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#1d0829;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none}
+body{background:radial-gradient(ellipse at 50% 25%,#62215f 0%,#2e0e3e 55%,#16061f 100%)}
+button{font-family:inherit;cursor:pointer;touch-action:manipulation;color:#fff}
+.scr{position:fixed;inset:0;display:none;overflow:hidden}
+.scr.on{display:block}
+/* world background: one painted image, dimmed; slow drift only when Battery saver is off */
+#bg{position:fixed;inset:-3%;background:center/cover no-repeat;opacity:0;transition:opacity .6s}
+#bg.on{opacity:.9}
+#bg::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(20,4,30,.15),rgba(20,4,30,.55))}
+body.drift #bg{animation:drift 40s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate(-1%,-1%) scale(1.02)}to{transform:translate(1%,1%) scale(1.04)}}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:60px;padding:8px 18px;border-radius:20px;border:3px solid #fff3c4;background:linear-gradient(#a24bd0,#6a1f93);font-size:24px;font-weight:800;box-shadow:0 5px 0 rgba(0,0,0,.35);text-shadow:0 2px 2px rgba(0,0,0,.4)}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.btn.gold{background:linear-gradient(#ffd75e,#e09a14);color:#3a1600;text-shadow:none;border-color:#fff8d6}
+.btn.teal{background:linear-gradient(#36c2b4,#137c78)}
+.btn.rose{background:linear-gradient(#ff7aa8,#c23a6e)}
+.btn.dim{background:linear-gradient(#5a4470,#3a2650)}
+.btn small{font-size:18px;font-weight:700;opacity:.9}
+/* title */
+#title{display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:max(10px,env(safe-area-inset-top)) 14px 64px}
+#title.on{display:flex}
+#tPic{width:min(56vw,30vh,250px);aspect-ratio:3/4;border-radius:22px;border:5px solid #f6c94f;box-shadow:0 8px 30px rgba(0,0,0,.6),0 0 30px rgba(255,200,80,.35);background:#3a1650 url(art/helene.webp) center/cover;flex:0 0 auto}
+#tName{text-align:center;line-height:1.05}
+#tName b{display:block;font-family:Georgia,"Times New Roman",serif;font-size:clamp(34px,9vw,52px);color:#ffe08a;text-shadow:0 3px 0 #7a3b00,0 0 18px rgba(255,200,90,.6)}
+#tName i{display:inline-block;margin-top:6px;font-style:normal;font-size:22px;font-weight:800;color:#3a1600;background:linear-gradient(#ffe48a,#f0a92a);padding:3px 16px;border-radius:14px}
+#tBtns{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(100%,460px)}
+#tBtns .wide{grid-column:1/-1}
+#tCol{display:flex;flex-direction:column;align-items:center;gap:10px;width:min(100%,460px)}
+@media (orientation:landscape) and (max-height:620px){
+ #title{flex-direction:row;gap:22px;padding:8px 16px 62px}
+ #tPic{width:auto;height:min(78vh,330px)}
+ #tName b{font-size:clamp(30px,6.5vh,44px)}#tName b br{display:none}#tName i{font-size:19px}
+ #tBtns .btn{min-height:54px;font-size:21px}#tCol{gap:8px;width:min(52vw,440px)}}
+/* map */
+#map{background:#e9d6a8 center top/cover no-repeat}
+#mapIn{position:absolute;left:50%;top:0;bottom:0;transform:translateX(-50%);height:100%;aspect-ratio:9/16;max-width:100%;background:center/100% 100% no-repeat}
+#mapTop{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:max(8px,env(safe-area-inset-top)) 10px 8px;background:linear-gradient(rgba(30,8,40,.92),rgba(30,8,40,.6));z-index:3}
+#mapTop h2{flex:1;margin:0;font-size:24px;color:#ffe08a;font-family:Georgia,serif;text-align:center}
+.wbtn{position:absolute;left:50%;transform:translate(-50%,-50%);min-width:200px;max-width:92%;padding:6px 16px;border-radius:18px;border:3px solid #fff3c4;background:rgba(60,18,80,.9);font-size:22px;font-weight:800;display:flex;flex-direction:column;align-items:center;line-height:1.15;box-shadow:0 4px 12px rgba(0,0,0,.5)}
+.wbtn span{font-size:18px;color:#ffe08a;font-weight:700}
+.wbtn.lock{background:rgba(50,40,60,.85);color:#ddd}
+body.land .wbtn{min-width:170px;max-width:31%}
+.wbtn.cur{border-color:#ffd400;box-shadow:0 0 0 4px rgba(255,212,0,.5),0 4px 12px rgba(0,0,0,.5)}
+/* play */
+#hud,#tools,#chestBox{position:absolute}
+#hud{display:flex;flex-direction:column;gap:6px}
+.row{display:flex;gap:8px;align-items:center}
+#face{width:54px;height:54px;border-radius:50%;border:3px solid #f6c94f;background:#3a1650 url(art/face.webp) center/cover;flex:0 0 auto;position:relative}
+#lvlName{flex:1;min-width:0;font-size:21px;font-weight:800;color:#ffe08a;text-shadow:0 2px 3px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:rgba(22,6,34,.8);border-radius:14px;padding:6px 10px;border:2px solid rgba(244,195,77,.6)}
+.ib{min-width:56px;height:56px;padding:0 10px;border-radius:16px;border:3px solid #fff;background:linear-gradient(#8b3bb4,#5a1a7e);font-size:20px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:4px;box-shadow:0 4px 0 rgba(0,0,0,.35);flex:0 0 auto}
+.ib:active{transform:translateY(2px)}
+.stat{flex:1 1 0;min-width:0;background:rgba(22,6,34,.88);border:2px solid #f4c34d;border-radius:14px;padding:2px 6px 3px;text-align:center}
+.stat .l{font-size:18px;color:#ffe7a8;line-height:1.2;white-space:nowrap}
+.stat .v{font-size:25px;font-weight:800;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#goal{position:relative;min-height:40px;border-radius:16px;background:rgba(22,6,34,.92);border:2px solid #f4c34d;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:14px;font-size:21px;font-weight:800;padding:0 8px}
+#gFill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#3ddc84,#ffe14a,#ff9f1c);transition:width .35s;opacity:.85}
+#gTxt{position:relative;text-shadow:0 0 3px #000,0 0 3px #000,0 1px 2px #000;display:flex;align-items:center;gap:12px;white-space:nowrap}
+.gi{display:inline-block;width:32px;height:32px;background:url(art/gems.webp) 0 0/800% 100% no-repeat;vertical-align:middle}
+.gc{display:inline-flex;align-items:center;gap:4px}
+.gc.done{color:#7dff9e}
+#wrap{position:absolute;padding:5px;border-radius:18px;background:linear-gradient(145deg,#fff0b0,#e0a530 30%,#9a640e 55%,#f6c94f 80%,#b9801a);box-shadow:0 8px 24px rgba(0,0,0,.6)}
+#cv{display:block;border-radius:13px;touch-action:none;background:rgba(43,15,63,.82)}
+#chestBox{display:none;align-items:center;gap:10px;background:rgba(22,6,34,.85);border:2px solid #f4c34d;border-radius:16px;padding:4px 10px}
+#chestBox.on{display:flex}
+#chestImg{width:84px;height:84px;background:center/contain no-repeat;flex:0 0 auto;transform-origin:50% 90%}
+#chestImg.wig{animation:wig .45s}
+@keyframes wig{0%,100%{transform:rotate(0)}25%{transform:rotate(-7deg) scale(1.06)}75%{transform:rotate(6deg) scale(1.04)}}
+#chestInfo{flex:1;min-width:0}
+#chestName{font-size:20px;font-weight:800;color:#ffe08a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#lockBar{position:relative;height:30px;border-radius:15px;background:#2a1038;border:2px solid #f4c34d;overflow:hidden;margin-top:4px}
+#lockFill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#ff9fd0,#ffe14a);transition:width .3s}
+#lockTxt{position:absolute;inset:0;text-align:center;font-size:18px;font-weight:800;line-height:26px;text-shadow:0 0 3px #000,0 0 3px #000}
+#tools{display:grid;gap:8px}
+.tb{height:60px;border-radius:16px;border:3px solid #fff3c4;background:linear-gradient(#8b3bb4,#5a1a7e);font-size:19px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 4px 0 rgba(0,0,0,.35);padding:0 4px;white-space:nowrap}
+.tb .e{font-size:26px}
+.tb .n{background:#ffd75e;color:#3a1600;border-radius:12px;padding:0 7px;font-size:18px;min-width:26px}
+.tb.armed{background:linear-gradient(#ffd75e,#e09a14);color:#3a1600}
+.tb:disabled{opacity:.45}
+#bubble{position:absolute;z-index:14;display:none;pointer-events:none;background:#fffaf0;color:#3a1650;border:3px solid #f6c94f;border-radius:18px;padding:8px 14px;font-size:20px;font-weight:700;line-height:1.25;box-shadow:0 6px 16px rgba(0,0,0,.45)}
+#bubble.on{display:block}
+#banner{position:fixed;z-index:15;pointer-events:none;display:none;left:50%;top:45%;transform:translate(-50%,-50%);padding:12px 22px;border-radius:20px;background:rgba(22,6,34,.94);border:3px solid #f4c34d;font-size:26px;font-weight:800;text-align:center;color:#ffe58a;max-width:92vw}
+#banner.on{display:block;animation:pop .3s ease-out}
+@keyframes pop{from{transform:translate(-50%,-50%) scale(.6);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+#armTip{position:absolute;z-index:13;display:none;left:50%;transform:translateX(-50%);background:rgba(22,6,34,.95);border:3px solid #ffd75e;border-radius:16px;padding:6px 12px;font-size:20px;font-weight:800;white-space:nowrap;align-items:center;gap:10px}
+#armTip.on{display:flex}
+#armTip button{height:48px;font-size:19px;border-radius:12px;border:2px solid #fff;background:#6a1f93;padding:0 12px;font-weight:800}
+/* cards */
+.ov{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:rgba(12,2,20,.78);padding:10px}
+.ov.on{display:flex}
+.card{position:relative;width:min(94vw,500px);max-height:calc(100% - 8px);overflow:auto;background:linear-gradient(#4a1863,#2a0c3a);border:4px solid #f4c34d;border-radius:24px;padding:16px 16px 14px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.card h2{margin:2px 0 8px;font-size:30px;color:#ffe08a;font-family:Georgia,serif;line-height:1.1}
+.card p{margin:6px 0;font-size:21px;line-height:1.35}
+.card .pic{width:120px;height:120px;margin:0 auto 4px;background:center/contain no-repeat}
+.card .face{width:96px;height:96px;border-radius:50%;border:4px solid #f6c94f;margin:0 auto 6px;background:url(art/face.webp) center/cover}
+.card .btns{display:grid;gap:10px;margin-top:12px}
+.card .btns.two{grid-template-columns:1fr 1fr}
+.stars{font-size:46px;letter-spacing:6px;color:#ffd75e;text-shadow:0 0 12px rgba(255,210,80,.7)}
+.stars .off{color:#5b4370;text-shadow:none}
+.card ul{text-align:left;margin:6px 0;padding-left:24px;font-size:20px;line-height:1.4}
+.card li{margin:4px 0}
+.set{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0;font-size:22px;font-weight:700;text-align:left}
+.set button{min-width:110px;height:56px;border-radius:16px;border:3px solid #fff;font-size:21px;font-weight:800;background:#4d3a5c}
+.set button.on{background:linear-gradient(#3ddc84,#16924d)}
+.lvls{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px}
+.lv{height:76px;border-radius:16px;border:3px solid #fff3c4;background:linear-gradient(#a24bd0,#6a1f93);font-size:26px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.lv small{font-size:15px;color:#ffd75e;letter-spacing:1px;margin-top:4px}
+.lv.chest{background:linear-gradient(#ffd75e,#e09a14);color:#3a1600}
+.lv:disabled{background:#3a2a48;color:#9a8aa8;border-color:#6a5a78}
+/* share/install dock (title only) */
+#dock{position:fixed;left:0;right:0;bottom:max(8px,env(safe-area-inset-bottom));display:none;justify-content:center;gap:10px;z-index:8;flex-wrap:wrap;padding:0 8px}
+#dock.on{display:flex}
+#dock .dk{height:48px;padding:0 14px;border-radius:24px;border:2px solid #f4c34d;background:rgba(22,6,34,.9);font-size:19px;font-weight:800}
+#toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);z-index:50;background:rgba(22,6,34,.95);border:2px solid #f4c34d;border-radius:16px;padding:8px 16px;font-size:19px;font-weight:700;display:none}
+#toast.on{display:block}
+/* bigger, easier-to-read shared leaderboard card */
+body #palbCard{width:min(430px,100%);font:19px/1.35 system-ui,-apple-system,sans-serif}
+body #palbCard h2{font-size:26px}body #palbCard .sub{font-size:16px}body #palbCard .note,body #palbCard .err{font-size:17px}
+body #palbCard .big{font-size:30px}body #palbCard .src{font-size:15px}
+body #palbCard input{height:54px;font-size:21px}body #palbCard .b{min-height:56px;font-size:19px}
+body #palbList li{height:38px;font-size:19px}body #palbTabs button{min-height:48px;font-size:17px}
+@media (prefers-reduced-motion:reduce){body.drift #bg{animation:none}}
+</style></head><body>
+<div id="bg"></div>
+<section id="title" class="scr">
+ <div id="tPic" role="img" aria-label="Helene holding her glowing treasure chest"></div>
+ <div id="tCol"><div id="tName"><b>Helene's <br>Treasure Chest</b><i>Volume 2 · The Grand Journey</i></div>
+ <div id="tBtns">
+  <button class="btn gold wide primary" id="bJourney" type="button">🗺️ <span id="bJourneyT">Start the Journey</span></button>
+  <button class="btn teal" id="bZen" type="button">🌸 Zen</button>
+  <button class="btn rose" id="bRush" type="button">⏱️ Rush</button>
+  <button class="btn dim" id="bHow" type="button">📖 How to Play</button>
+  <button class="btn dim" id="bSet" type="button">⚙️ Settings</button>
+ </div></div>
+</section>
+<section id="map" class="scr"><div id="mapIn"></div>
+ <div id="mapTop"><button class="ib" id="mapHome" type="button" aria-label="Home">🏠</button><h2>Helene's Journey</h2><div id="mapStars" style="font-size:20px;font-weight:800;color:#ffe08a;min-width:56px;text-align:right">★ 0</div></div>
+</section>
+<section id="play" class="scr">
+ <div id="hud">
+  <div class="row"><div id="face" aria-hidden="true"></div><div id="lvlName">Rose Garden · 1</div><button class="ib" id="pauseBtn" type="button" aria-label="Pause menu">⏸</button></div>
+  <div class="row" id="stats"><div class="stat"><div class="l">Score</div><div class="v" id="sScore">0</div></div><div class="stat"><div class="l" id="sMovesL">Moves</div><div class="v" id="sMoves">26</div></div></div>
+  <div id="goal"><div id="gFill"></div><div id="gTxt"></div></div>
+ </div>
+ <div id="chestBox"><div id="chestImg"></div><div id="chestInfo"><div id="chestName">Rosie's lock</div><div id="lockBar"><div id="lockFill"></div><div id="lockTxt"></div></div></div></div>
+ <div id="wrap"><canvas id="cv" aria-label="Jewel board"></canvas></div>
+ <div id="tools">
+  <button class="tb" id="tHint" type="button"><span class="e">💡</span>Hint</button>
+  <button class="tb" id="tHam" type="button" aria-label="Hammer: clear one jewel"><span class="e">🔨</span><span class="n" id="nHam">3</span></button>
+  <button class="tb" id="tShuf" type="button" aria-label="Shuffle the board"><span class="e">🔀</span><span class="n" id="nShuf">3</span></button>
+  <button class="tb" id="tStar" type="button" aria-label="Rainbow Star: turn a jewel into a Treasure Star"><span class="e">🌈</span><span class="n" id="nStar">2</span></button>
+ </div>
+ <div id="armTip"><span id="armTxt">Tap a jewel</span><button type="button" id="armCancel">Cancel</button></div>
+ <div id="bubble"></div>
+</section>
+<div id="banner"></div>
+<div class="ov" id="ov" role="dialog" aria-modal="true"><div class="card" id="card"></div></div>
+<div id="dock" role="toolbar" aria-label="Share and install"><button class="dk" id="shareBtn" type="button">🔗 Share</button><button class="dk" id="instBtn" type="button">📲 Install</button></div>
+<div id="toast" role="status"></div>
+<script src="js/logic.js?v=1"></script>
+<script src="js/audio.js?v=1"></script>
+<script src="js/game.js?v=1"></script>
+<script src="js/gamepad.js?v=1"></script>
+<script src="js/pad.js?v=1"></script>
+</body></html>
