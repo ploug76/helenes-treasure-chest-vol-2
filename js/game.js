@@ -166,7 +166,7 @@ function worldCard(w){const W_=WORLDS[w];let h='<div class="pic" style="backgrou
  const nx=$('card').querySelector('.lv:not(:disabled):not(.done)');}
 /* ---- cards ---- */
 let cardBack=null;
-function card(html,btns,opt){const c=$('card');c.innerHTML=html+(btns&&btns.length?'<div class="btns'+(btns.length===2&&!(opt&&opt.stack)?' two':'')+'"></div>':'');
+function card(html,btns,opt){const c=$('card');c.innerHTML=html+(btns&&btns.length?'<div class="btns'+(btns.length===2&&!(opt&&opt.stack)?' two':'')+(btns.length>=4?' many':'')+'"></div>':'');
  const bx=c.querySelector('.btns');(btns||[]).forEach((b,i)=>{const e=document.createElement('button');e.type='button';e.className='btn '+(b.cls||'')+(i===0?' primary':'');e.innerHTML=b.t;if(b.id)e.id=b.id;e.onclick=()=>{AU.S.sel();b.fn()};bx.appendChild(e)});
  cardBack=opt&&opt.back||(btns&&btns.length?btns[btns.length-1].fn:closeCard);$('ov').classList.add('on');c.scrollTop=0}
 function closeCard(){$('ov').classList.remove('on')}
