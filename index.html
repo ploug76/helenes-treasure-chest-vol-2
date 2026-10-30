@@ -136,6 +136,40 @@ body #palbCard h2{font-size:26px}body #palbCard .sub{font-size:16px}body #palbCa
 body #palbCard .big{font-size:30px}body #palbCard .src{font-size:15px}
 body #palbCard input{height:54px;font-size:21px}body #palbCard .b{min-height:56px;font-size:19px}
 body #palbList li{height:38px;font-size:19px}body #palbTabs button{min-height:48px;font-size:17px}
+/* Helene easy mode (Oct 30): one-tap PLAY, one Level Select screen, gear for settings, large text everywhere (24px+ on phones) */
+#tBtns{grid-template-columns:1fr;gap:14px}
+#tBtns .btn.big{min-height:88px;font-size:34px;letter-spacing:.5px;flex-direction:column;gap:2px;line-height:1.1}
+#tBtns .btn.big small{font-size:24px;font-weight:800;opacity:1}
+#tBtns #bPick{min-height:76px;font-size:30px}
+#bSet{position:fixed;top:max(10px,env(safe-area-inset-top));right:10px;width:64px;height:64px;border-radius:50%;border:3px solid #fff3c4;background:rgba(60,18,80,.92);font-size:32px;display:none;align-items:center;justify-content:center;z-index:9;box-shadow:0 4px 10px rgba(0,0,0,.5);padding:0}
+#title.on #bSet{display:flex}
+#tName i{font-size:24px}
+.btn{font-size:26px}.btn small{font-size:22px}
+.card h2{font-size:32px}.card p{font-size:24px}.card ul{font-size:24px}
+.card.ls{width:min(96vw,560px);padding:12px 12px 12px}
+.card.ls .cbody{padding:0 2px}
+.mrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 6px;position:sticky;top:0;z-index:2;background:#40155a;padding:4px 0}
+.mch{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:72px;border-radius:16px;border:3px solid #fff3c4;background:linear-gradient(#5a4470,#3a2650);font-size:24px;font-weight:800;padding:0 4px;line-height:1.1}
+.mch.sel{background:linear-gradient(#ffd75e,#e09a14);color:#3a1600;box-shadow:0 0 0 4px rgba(255,212,0,.45)}
+.wh{margin:12px 0 2px;font-size:26px;color:#ffe08a;font-family:Georgia,serif;text-align:left}
+.mdesc{margin:18px 6px!important;font-size:26px!important}
+.lv{height:80px;font-size:32px}.lv small{font-size:20px}
+.lv.sel{outline:5px solid #3dff8a;outline-offset:1px;box-shadow:0 0 16px rgba(61,255,138,.8)}
+.card.ls .btns .btn{min-height:72px;font-size:30px}
+.set{font-size:26px}.set button{font-size:24px;height:60px}
+.stat .l{font-size:22px}.stat .v{font-size:30px}
+#lvlName{font-size:26px}#goal{font-size:24px}#gTxt{gap:10px}
+#chestName{font-size:24px}#lockTxt{font-size:22px}
+.tb{font-size:24px}.tb .n{font-size:22px}
+#bubble{font-size:24px}#armTip{font-size:24px}#armTip button{font-size:22px}
+#dock .dk{font-size:22px;height:52px}#toast{font-size:24px}
+#banner{font-size:30px}
+body #palbCard{font-size:22px}body #palbCard h2{font-size:30px}body #palbCard .sub,body #palbCard .note,body #palbCard .err,body #palbCard .src{font-size:20px}
+body #palbCard input{font-size:24px}body #palbCard .b{font-size:22px}body #palbList li{font-size:22px;height:42px}body #palbTabs button{font-size:20px}
+@media (orientation:landscape) and (max-height:620px){
+ #tBtns .btn.big{min-height:76px;font-size:30px}#tBtns #bPick{min-height:64px;font-size:26px}#tBtns .btn.big small{font-size:22px}
+ .card p{font-size:22px}.card .btns .btn{font-size:24px}.card.ls{width:min(96vw,760px)}.card.ls .btns{grid-template-columns:1fr 1fr}.card.ls .btns .btn{min-height:60px;font-size:26px}
+ .card.ls .lvls{grid-template-columns:repeat(5,1fr)}.lv{height:62px;font-size:28px}.mch{min-height:54px}.wh{margin-top:6px;font-size:24px}}
 @media (prefers-reduced-motion:reduce){body.drift #bg{animation:none}}
 </style></head><body>
 <div id="bg"></div>
@@ -143,12 +177,10 @@ body #palbList li{height:38px;font-size:19px}body #palbTabs button{min-height:48
  <div id="tPic" role="img" aria-label="Helene holding her glowing treasure chest"></div>
  <div id="tCol"><div id="tName"><b>Helene's <br>Treasure Chest</b><i>Volume 2 · The Grand Journey</i></div>
  <div id="tBtns">
-  <button class="btn gold wide primary" id="bJourney" type="button">🗺️ <span id="bJourneyT">Start the Journey</span></button>
-  <button class="btn teal" id="bZen" type="button">🌸 Zen</button>
-  <button class="btn rose" id="bRush" type="button">⏱️ Rush</button>
-  <button class="btn dim" id="bHow" type="button">📖 How to Play</button>
-  <button class="btn dim" id="bSet" type="button">⚙️ Settings</button>
+  <button class="btn gold wide primary big" id="bPlay" type="button"><span>▶ PLAY</span><small id="bPlaySub">Rose Garden · Level 1</small></button>
+  <button class="btn teal wide big" id="bPick" type="button">🗺️ LEVEL SELECT</button>
  </div></div>
+ <button id="bSet" type="button" aria-label="Settings and How to Play">⚙️</button>
 </section>
 <section id="map" class="scr"><div id="mapIn"></div>
  <div id="mapTop"><button class="ib" id="mapHome" type="button" aria-label="Home">🏠</button><h2>Helene's Journey</h2><div id="mapStars" style="font-size:20px;font-weight:800;color:#ffe08a;min-width:56px;text-align:right">★ 0</div></div>
@@ -174,11 +206,11 @@ body #palbList li{height:38px;font-size:19px}body #palbTabs button{min-height:48
 <div class="ov" id="ov" role="dialog" aria-modal="true"><div class="card" id="card"></div></div>
 <div id="dock" role="toolbar" aria-label="Share and install"><button class="dk" id="shareBtn" type="button">🔗 Share</button><button class="dk" id="instBtn" type="button">📲 Install</button></div>
 <div id="toast" role="status"></div>
-<script src="js/logic.js?v=4"></script>
-<script src="js/audio.js?v=4"></script>
-<script src="js/game.js?v=4"></script>
-<script src="js/gamepad.js?v=4"></script>
-<script src="js/pad.js?v=4"></script>
+<script src="js/logic.js?v=5"></script>
+<script src="js/audio.js?v=5"></script>
+<script src="js/game.js?v=5"></script>
+<script src="js/gamepad.js?v=5"></script>
+<script src="js/pad.js?v=5"></script>
 <!--lb--><script>// LIVE config (Firestore). Public web keys only (safe to ship per Firebase docs). Used only for J Woo's Fishing Challenge + its five8nine copy.
 window.PALB_CONFIG = {
   backend: 'firestore',

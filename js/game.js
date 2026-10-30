@@ -146,7 +146,7 @@ let banT=0;function banner(t,ms){const b=$('banner');b.textContent=t;b.classList
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),2200)}
 /* ---- screens ---- */
 function show(id){['title','map','play'].forEach(s=>$(s).classList.toggle('on',s===id));$('dock').classList.toggle('on',id==='title');state=id==='play'?'play':id}
-function goTitle(){GEN++;closeCard();show('title');G=null;setBg('');AU.play('title');$('bJourneyT').textContent=totalStars()?'Continue the Journey':'Start the Journey'}
+function goTitle(){GEN++;closeCard();show('title');G=null;setBg('');AU.play('title');playSub()}
 /* ---- map ---- */
 function placeMap(){const inner=$('mapIn'),land=innerWidth>innerHeight*1.1;document.body.classList.toggle('land',land);
  Object.assign(inner.style,land?{width:'100%',aspectRatio:'auto',backgroundImage:'none'}:{width:'',aspectRatio:'',backgroundImage:inner.dataset.bg||''});
@@ -167,7 +167,7 @@ function worldCard(w){const W_=WORLDS[w];let h='<div class="pic" style="backgrou
  const nx=$('card').querySelector('.lv:not(:disabled):not(.done)');}
 /* ---- cards ---- */
 let cardBack=null;
-function card(html,btns,opt){const c=$('card');c.innerHTML='<div class="cbody">'+html+'</div>'+(btns&&btns.length?'<div class="btns'+(btns.length===2&&!(opt&&opt.stack)?' two':'')+(btns.length>=4?' many':'')+'"></div>':'');
+function card(html,btns,opt){const c=$('card');c.classList.remove('ls');c.innerHTML='<div class="cbody">'+html+'</div>'+(btns&&btns.length?'<div class="btns'+(btns.length===2&&!(opt&&opt.stack)?' two':'')+(btns.length>=4?' many':'')+'"></div>':'');
  const bx=c.querySelector('.btns');(btns||[]).forEach((b,i)=>{const e=document.createElement('button');e.type='button';e.className='btn '+(b.cls||'')+(i===0?' primary':'');e.innerHTML=b.t;if(b.id)e.id=b.id;e.onclick=()=>{AU.S.sel();b.fn()};bx.appendChild(e)});const cb=c.querySelector('.cbody');if(cb)cb.scrollTop=0;
  cardBack=opt&&opt.back||(btns&&btns.length?btns[btns.length-1].fn:closeCard);$('ov').classList.add('on');c.scrollTop=0}
 function closeCard(){$('ov').classList.remove('on')}
@@ -250,7 +250,7 @@ async function levelWon(){const my=GEN;G.over=true;busy=true;hint=sel=armed=null
  const st='<div class="stars">'+[0,1,2].map(i=>i<stars?'★':'<span class="off">★</span>').join('')+'</div>';
  const head=d.type==='chest'?'<div class="pic" style="background-image:url(art/chest'+w+'.webp)"></div><h2>'+WORLDS[w].chest+' says thank you!</h2>':'<div class="face"></div><h2>Level complete!</h2>';
  card(head+st+'<p>Score <b>'+fmt(G.score)+'</b></p>'+gift+(d.type==='chest'&&w<WORLDS.length-1?'<p>The path to the <b>'+WORLDS[w+1].name+'</b> is open!</p>':''),
-  [{t:'▶ Next',cls:'gold',fn:()=>{if(nx[1]===0){state='wdone';setTimeout(()=>goMap(nx[0]),60)}else startLevel(nx[0],nx[1])}},{t:'🗺️ Map',cls:'dim',fn:()=>goMap()}]);
+  [{t:'▶ Next',cls:'gold',fn:()=>startLevel(nx[0],nx[1])},{t:'🗺️ Levels',cls:'dim',fn:()=>levelSelect({mode:'journey',w:nx[0],l:nx[1]})}]);
  if(d.type==='chest')state='wdone'}
 function finale(){state='finale';AU.play('finale');setBg('palace');
  card('<div class="pic hpic" style="background-image:url(art/helene.webp)"></div><h2>The treasure is home!</h2><p>All six chests are open and Helene\u2019s Grand Treasure is back where it belongs. Thank you for the wonderful journey!</p><p>Journey score <b>'+fmt(journeyTotal())+'</b> · ★ '+totalStars()+' / 90</p>',
@@ -275,16 +275,16 @@ async function useArmed(p){const b=armed,g=B[p.r][p.c],my=GEN;if(!g)return;disar
  if(my!==GEN)return;await afterMove();if(my!==GEN)return;busy=false;lastAct=performance.now();updTools()}
 /* ---- pause / visibility ---- */
 function pause(){if(state!=='play'||cardOpen())return;state='pause';disarm();
- card('<h2>Paused</h2><p>Take all the time you like.</p>',[{t:'▶ Resume',cls:'gold',id:'resumeBtn',fn:resume},...(G.mode==='journey'?[{t:'🔄 Restart level',cls:'dim',fn:()=>startLevel(G.w,G.l)},{t:'🗺️ Map',cls:'dim',fn:()=>goMap()}]:[{t:'🔄 New game',cls:'dim',fn:()=>newGame(G.mode)}]),{t:'⚙️ Settings',cls:'dim',fn:()=>settings(pause)},{t:'🏠 Home',cls:'dim',fn:()=>{if(G.mode==='zen'){SV.zenBest=Math.max(SV.zenBest,G.score);persist()}goTitle()}}],{stack:1,back:resume})}
+ card('<h2>Paused</h2><p>Take all the time you like.</p>',[{t:'▶ Resume',cls:'gold',id:'resumeBtn',fn:resume},...(G.mode==='journey'?[{t:'🔄 Restart level',cls:'dim',fn:()=>startLevel(G.w,G.l)},{t:'🗺️ Levels',cls:'dim',fn:()=>levelSelect({mode:'journey',w:G.w,l:G.l},pause)}]:[{t:'🔄 New game',cls:'dim',fn:()=>newGame(G.mode)}]),{t:'⚙️ Settings',cls:'dim',fn:()=>settings(pause)},{t:'🏠 Home',cls:'dim',fn:()=>{if(G.mode==='zen'){SV.zenBest=Math.max(SV.zenBest,G.score);persist()}goTitle()}}],{stack:1,back:resume})}
 function resume(){closeCard();if(state==='pause'){state='play';lastAct=performance.now();dirty=true;kick()}}
 $('pauseBtn').onclick=()=>{AU.S.sel();pause()};
 document.addEventListener('visibilitychange',()=>{if(document.hidden){AU.suspend();if(state==='play'&&G&&!G.over)pause()}else{AU.resume();kick()}});
 /* ---- settings / how to play ---- */
 function settings(back){const row=(k,l)=>'<div class="set"><span>'+l+'</span><button type="button" data-k="'+k+'" class="'+(SV[k]?'on':'')+'">'+(SV[k]?'On':'Off')+'</button></div>';
- card('<h2>Settings</h2>'+row('music','🎵 Music')+row('sound','🔔 Sounds')+row('saver','🔋 Battery saver')+'<p style="font-size:18px;opacity:.85">Battery saver uses fewer sparkles and keeps the background still. It\u2019s on to start.</p>',[{t:'✔ Done',cls:'gold',fn:()=>back?back():(state==='title'?closeCard():closeCard())}],{back:()=>back?back():closeCard()});
+ card('<h2>Settings</h2>'+row('music','🎵 Music')+row('sound','🔔 Sounds')+row('saver','🔋 Battery saver')+'<p style="font-size:22px;opacity:.9">Battery saver uses fewer sparkles and keeps the background still. It\u2019s on to start.</p>',[{t:'📖 How to Play',cls:'dim',fn:()=>howTo(()=>settings(back))},{t:'✔ Done',cls:'gold',fn:()=>back?back():closeCard()}],{stack:1,back:()=>back?back():closeCard()});
  $('card').querySelectorAll('.set button').forEach(b=>b.onclick=()=>{const k=b.dataset.k;SV[k]=SV[k]?0:1;persist();b.classList.toggle('on',!!SV[k]);b.textContent=SV[k]?'On':'Off';
   if(k==='music')AU.setMusic(SV.music);if(k==='sound'){AU.setSound(SV.sound);AU.S.sel()}if(k==='saver')applySaver()})}
-function howTo(){card('<h2>How to Play</h2><ul>'+
+function howTo(back){card('<h2>How to Play</h2><ul>'+
  '<li><b>Swap</b> two jewels side by side: swipe one, or tap one then its neighbour. Make a line of <b>3 or more</b> of the same kind.</li>'+
  '<li><b>Match 4</b> for a <b>Line Gem</b> (clears a row or column). <b>L or T shape</b> makes a <b>Burst Gem</b>. <b>Match 5</b> makes a <b>Treasure Star</b>: swap it with any jewel to clear that colour.</li>'+
  '<li><b>The Journey:</b> 6 lands, 5 stops each. Fill the chest, collect the jewels shown up top, then open each land\u2019s friendly <b>challenge chest</b> with sparkles. Its favourite jewel counts double!</li>'+
@@ -292,7 +292,7 @@ function howTo(){card('<h2>How to Play</h2><ul>'+
  '<li><b>Boosters:</b> 🔨 clears one jewel, 🔀 shuffles, 🌈 makes a Treasure Star. Chests give more.</li>'+
  '<li>Stuck? Press <b>💡 Hint</b>, or wait a moment and two jewels will glow.</li>'+
  '<li class="gp-help">🎮 <b>Controller</b> (USB or Bluetooth, computer or phone): stick or D-pad moves the gold box, <b>A</b> picks a jewel, then <b>A</b> on a neighbour swaps. <b>B</b> lets go or goes back, <b>X</b> hint, <b>Start</b> pauses, <b>Select</b> sound. In menus the D-pad moves and <b>A</b> chooses.</li>'+
- '<li>⌨️ <b>Keyboard:</b> arrows move, Enter or Space picks, H hint, P pause, M sound.</li></ul>',[{t:'Got it!',cls:'gold',id:'howClose',fn:closeCard}])}
+ '<li>⌨️ <b>Keyboard:</b> arrows move, Enter or Space picks, H hint, P pause, M sound.</li></ul>',[{t:'Got it!',cls:'gold',id:'howClose',fn:()=>back?back():closeCard()}])}
 /* ---- keyboard ---- */
 addEventListener('keydown',e=>{AU.start();const k=e.key;
  if(cardOpen()){if(k==='Escape'&&cardBack){e.preventDefault();cardBack()}return}
@@ -306,11 +306,29 @@ function moveCursor(dr,dc){cursor.on=true;cursor.r=Math.max(0,Math.min(N-1,curso
 function padPick(){if(!cursor.on){cursor.on=true;dirty=true;kick();return}tapCell({r:cursor.r,c:cursor.c})}
 function toggleMute(){const on=!(SV.music||SV.sound);SV.music=SV.sound=on?1:0;persist();AU.setMusic(SV.music);AU.setSound(SV.sound);toast(on?'🔔 Sound on':'🔕 Sound off')}
 /* ---- title buttons ---- */
-$('bJourney').onclick=()=>{AU.start();AU.S.sel();if(!SV.seen.intro){SV.seen.intro=1;persist();
-  card('<div class="face"></div><h2>The Grand Journey</h2><p>A gust of wind scattered Helene\u2019s treasure across six storybook lands!</p><p>Match jewels along the way and open each land\u2019s friendly treasure chest to bring the treasure home.</p>',[{t:'▶ Let\u2019s go!',cls:'gold',fn:()=>goMap()}]);return}goMap()};
-$('bZen').onclick=()=>{AU.start();SV.zenW=((SV.zenW||0)+1)%6;persist();newGame('zen')};
-$('bRush').onclick=()=>{AU.start();newGame('rush')};
-$('bHow').onclick=()=>{AU.S.sel();howTo()};$('bSet').onclick=()=>{AU.S.sel();settings()};
+/* ---- title: one tap PLAY, one simple LEVEL SELECT screen, settings behind the gear ---- */
+function playTarget(){const nx=nextLevel();return nx?{mode:'journey',w:nx[0],l:nx[1]}:{mode:'zen'}}
+function playSub(){const t=playTarget(),e=$('bPlaySub');if(e)e.textContent=t.mode==='journey'?(t.l===LPW-1?WORLDS[t.w].chest+"'s Chest":WORLDS[t.w].name+' · Level '+(t.l+1)):'Relax in Zen'}
+function playNow(t){AU.start();SV.seen.intro=1;persist();if(t.mode==='journey')startLevel(t.w,t.l);else{if(t.mode==='zen'){SV.zenW=((SV.zenW||0)+1)%6;persist()}newGame(t.mode)}}
+let LSel=null;
+function levelSelect(pre,back){if(pre)LSel=Object.assign({},pre);if(!LSel)LSel=playTarget();if(LSel.mode==='journey'&&LSel.w==null){const t=playTarget();LSel.w=t.w||0;LSel.l=t.l||0}
+ const M=[['journey','🗺️<span>Journey</span>'],['zen','🌸<span>Zen</span>'],['rush','⏱️<span>Rush</span>']];
+ let h='<h2>Pick a Level</h2><div class="mrow">'+M.map(m=>'<button type="button" class="mch'+(LSel.mode===m[0]?' sel':'')+'" data-m="'+m[0]+'">'+m[1]+'</button>').join('')+'</div>';
+ if(LSel.mode==='journey'){WORLDS.forEach((W_,w)=>{h+='<h3 class="wh">'+W_.name+'</h3><div class="lvls">';
+   for(let l=0;l<LPW;l++){const ok=unlocked(w,l),s=SV.stars[lkey(w,l)]||0,ch=l===LPW-1,se=LSel.w===w&&LSel.l===l;
+    h+='<button type="button" class="lv'+(ch?' chest':'')+(se?' sel':'')+'" data-w="'+w+'" data-l="'+l+'"'+(ok?'':' disabled')+' aria-label="'+W_.name+' '+(ch?'challenge chest':'level '+(l+1))+'">'+(ch?'🎁':(ok?l+1:'🔒'))+'<small>'+(s?'★'.repeat(s):'')+'</small></button>'}
+   h+='</div>'})}
+ else h+='<p class="mdesc">'+(LSel.mode==='zen'?'🌸 Zen: relax and match jewels. No moves, no clock, no rush.':'⏱️ Rush: 2 minutes to score as much as you can.')+'</p>';
+ const bk=back||(state==='title'?closeCard:goTitle);
+ card(h,[{t:'▶ START',cls:'gold',id:'lsStart',fn:()=>playNow(LSel)},{t:'⬅ Back',cls:'dim',fn:bk}],{stack:1,back:bk});
+ const c=$('card');c.classList.add('ls');
+ c.querySelectorAll('.mch').forEach(b=>b.onclick=()=>{AU.S.sel();LSel={mode:b.dataset.m};levelSelect(null,back)});
+ c.querySelectorAll('.lv').forEach(b=>b.onclick=()=>{if(b.disabled){AU.S.bump();toast('Finish the level before it first');return}AU.S.sel();LSel={mode:'journey',w:+b.dataset.w,l:+b.dataset.l};
+  c.querySelectorAll('.lv.sel').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')});
+ const s=c.querySelector('.lv.sel');if(s)setTimeout(()=>s.scrollIntoView({block:'center'}),0)}
+$('bPlay').onclick=()=>{AU.S.sel();playNow(playTarget())};
+$('bPick').onclick=()=>{AU.start();AU.S.sel();levelSelect(playTarget())};
+$('bSet').onclick=()=>{AU.start();AU.S.sel();settings()};
 $('mapHome').onclick=goTitle;
 /* share / install */
 let deferredInstall=null;addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e});
